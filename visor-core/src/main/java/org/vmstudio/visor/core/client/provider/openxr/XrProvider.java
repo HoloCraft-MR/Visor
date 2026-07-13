@@ -7,6 +7,7 @@ import me.phoenixra.atumvr.core.XRProvider;
 import me.phoenixra.atumvr.core.XRState;
 import me.phoenixra.atumvr.core.enums.XRGraphicsApi;
 import me.phoenixra.atumvr.core.enums.XRSessionState;
+import me.phoenixra.atumvr.core.session.platform.XRPlatform;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorClientImpl;
@@ -23,6 +24,8 @@ public class XrProvider extends XRProvider {
 
     public XrProvider(@NotNull String appName, @NotNull AtumVRLogger logger) {
         super(appName, logger);
+
+        XRPlatform.setAndroidBridge(new QuestAndroidXRBridge());
 
         ClientContext.rawPoseHandler = new XrRawPoseHandler(this);
         ClientContext.inputProvider = inputHandler;
