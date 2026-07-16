@@ -152,6 +152,11 @@ public class VROverlayKeyboard extends VROverlayScreenInScreen<VRKeyboardScreen>
         return true;
     }
 
+    @Override
+    public boolean supportsRetainedTexture() {
+        return true;
+    }
+
     public void setVisible(boolean newVisibility,
                            @Nullable Screen attachedTo) {
         boolean changedVisibility = newVisibility != shown;

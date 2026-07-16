@@ -36,7 +36,9 @@ import org.joml.Matrix4f;
 import org.vmstudio.visor.api.client.gui.overlays.options.types.*;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
@@ -55,6 +57,8 @@ public class VROverlayManagerImpl implements VROverlayManager {
 
     private final List<VROverlay> preparedDepthOverlays = new ArrayList<>();
     private final List<VROverlay> preparedHudOverlays = new ArrayList<>();
+    private final Map<VROverlay, String> overlayProfilerLabels = new IdentityHashMap<>();
+    private final Matrix4f overlayProjection = new Matrix4f();
 
     public void tick(){
         for(VROverlay overlay : overlaysRegistry.getSortedComponents()){
@@ -100,7 +104,6 @@ public class VROverlayManagerImpl implements VROverlayManager {
             return;
         }
         // --- Setup ---
-        Matrix4f projection = new Matrix4f();
         int prevOverlayWidth = -1;
         int prevOverlayHeight = -1;
 
@@ -120,12 +123,18 @@ public class VROverlayManagerImpl implements VROverlayManager {
         try {
             // --- Render  ---
             for(var overlay : preparedOverlays){
+                if (overlay.supportsRetainedTexture() && !overlay.isTextureDirty()) {
+                    continue;
+                }
                 RenderTarget target = overlay.getRenderTarget();
                 if(target == null){
                     //shouldn't happen at all
                     throw new RuntimeException("Tried to render overlay quad with null renderTarget: "+overlay.getId());
                 }
-                profiler.push("VROverlay Texture: " + overlay.getId());
+                profiler.push(overlayProfilerLabels.computeIfAbsent(
+                        overlay,
+                        value -> "VROverlay Texture: " + value.getId()
+                ));
 
                 if(overlay instanceof VROverlayScreen overlayScreen) {
                     //apply clean render target
@@ -136,13 +145,13 @@ public class VROverlayManagerImpl implements VROverlayManager {
                     //setup projection if changed
                     if(prevOverlayWidth != overlayScreen.width
                             || prevOverlayHeight != overlayScreen.height) {
-                        projection.setOrtho(
+                        overlayProjection.setOrtho(
                                 0,
                                 overlayScreen.width, overlayScreen.height,
                                 0,
                                 1000.0F, 21000.0F
                         );
-                        McProjection.setOrthographic(projection);
+                        McProjection.setOrthographic(overlayProjection);
                         prevOverlayWidth = overlayScreen.width;
                         prevOverlayHeight = overlayScreen.height;
                     }
@@ -161,6 +170,7 @@ public class VROverlayManagerImpl implements VROverlayManager {
                 }
 
                 profiler.pop();
+                overlay.clearTextureDirty();
                 //overlays may render screens that are outside of VR scope
                 //therefore to not cause crash because of some silly UI mods,
                 //we should drain these GL errors instead

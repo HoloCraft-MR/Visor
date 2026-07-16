@@ -240,6 +240,9 @@ public abstract class GameRendererMixin {
 
     @WrapOperation(at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/GameRenderer;renderHand:Z"), method = "renderLevel")
     public boolean visor$noVanillaHands(GameRenderer instance, Operation<Boolean> original) {
+        if (minecraft.gameMode == null || minecraft.player == null) {
+            return false;
+        }
         if (VRRenderState.isSpectatedVRView(minecraft.getCameraEntity())) {
             return false;
         }

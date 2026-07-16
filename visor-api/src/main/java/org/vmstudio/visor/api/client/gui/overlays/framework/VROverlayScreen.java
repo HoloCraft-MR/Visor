@@ -111,6 +111,8 @@ public abstract class VROverlayScreen extends McScreen implements VROverlay {
 
     protected boolean initAgain;
 
+    private boolean textureDirty = true;
+
 
     private static long mouseDragDelay;
     private final EnumSet<MouseButtonType> pressedDragMouseButtons = EnumSet.noneOf(MouseButtonType.class);
@@ -258,6 +260,7 @@ public abstract class VROverlayScreen extends McScreen implements VROverlay {
 
     @Override
     public final void tick() {
+        markTextureDirty();
         onPreTick();
         boolean oldVisible = visible;
         var preVisible = optionsVisibility == null || optionsVisibility.isVisible();
@@ -364,6 +367,7 @@ public abstract class VROverlayScreen extends McScreen implements VROverlay {
     @Override
     public void setEnabled(boolean flag) {
         if (flag == enabled) return;
+        markTextureDirty();
         if (flag) {
             enabled = true;
             updateSize();
@@ -387,6 +391,7 @@ public abstract class VROverlayScreen extends McScreen implements VROverlay {
 
 
     public void updateSize(){
+        markTextureDirty();
         guiScaleFactor = VisorAPI.client().getGuiManager().calculateScale(
                 0,
                 getRequestedWidth(),
@@ -579,6 +584,10 @@ public abstract class VROverlayScreen extends McScreen implements VROverlay {
                 (int) (rawY * (double) this.height)
         );
 
+        if (oldMouseX != cursorData.getCursorX() || oldMouseY != cursorData.getCursorY()) {
+            markTextureDirty();
+        }
+
         if(!activeCursor){
             return;
         }
@@ -652,20 +661,24 @@ public abstract class VROverlayScreen extends McScreen implements VROverlay {
     // Remapping will break these methods if not overridden
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int buttonType) {
+        markTextureDirty();
         return onMouseClicked(mouseX, mouseY, buttonType);
     }
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int buttonType) {
+        markTextureDirty();
         return onMouseReleased(mouseX, mouseY, buttonType);
     }
     @Override
     public boolean mouseDragged(double mouseX, double mouseY,
                                 int buttonType,
                                 double deltaX, double deltaY) {
+        markTextureDirty();
         return onMouseDragged(mouseX, mouseY, buttonType, deltaX, deltaY);
     }
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollDelta) {
+        markTextureDirty();
         return onMouseScrolled(mouseX, mouseY, scrollDelta);
     }
     @Override
@@ -674,15 +687,33 @@ public abstract class VROverlayScreen extends McScreen implements VROverlay {
     }
     @Override
     public boolean keyPressed(int keyCode, int keyScan, int modifiers) {
+        markTextureDirty();
         return onKeyPressed(keyCode, keyScan, modifiers);
     }
     @Override
     public boolean keyReleased(int keyCode, int keyScan, int modifiers) {
+        markTextureDirty();
         return onKeyReleased(keyCode, keyScan, modifiers);
     }
     @Override
     public boolean charTyped(char chr, int modifiers) {
+        markTextureDirty();
         return onCharTyped(chr, modifiers);
+    }
+
+    @Override
+    public boolean isTextureDirty() {
+        return textureDirty;
+    }
+
+    @Override
+    public void markTextureDirty() {
+        textureDirty = true;
+    }
+
+    @Override
+    public void clearTextureDirty() {
+        textureDirty = false;
     }
 
     @Override

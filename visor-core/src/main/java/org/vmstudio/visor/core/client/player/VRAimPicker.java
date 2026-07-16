@@ -36,6 +36,10 @@ public class VRAimPicker {
 
 
     public static void pickWithVRHands(Runnable vanillaPick) {
+        if (MC.gameMode == null) {
+            MC.hitResult = fallbackMiss();
+            return;
+        }
         if(VisorState.get().isNotActive()){
             vanillaPick.run();
             return;

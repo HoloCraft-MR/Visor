@@ -1,6 +1,8 @@
 package org.vmstudio.visor.core.client.provider.openxr;
 
 public final class QuestVLoader {
+    private static String deviceModel;
+
     static {
         System.loadLibrary("vloader");
     }
@@ -14,4 +16,21 @@ public final class QuestVLoader {
     public static native long getDalvikVM();
     public static native long getDalvikActivity();
     public static native void setupAndroid();
+    private static native String getDeviceModel();
+
+    public static String deviceModel() {
+        if (deviceModel == null) {
+            deviceModel = getDeviceModel();
+        }
+        return deviceModel;
+    }
+
+    public static boolean isQuest2() {
+        return deviceModel().equalsIgnoreCase("Quest 2");
+    }
+
+    public static boolean isQuest3Family() {
+        return deviceModel().equalsIgnoreCase("Quest 3")
+                || deviceModel().equalsIgnoreCase("Quest 3S");
+    }
 }

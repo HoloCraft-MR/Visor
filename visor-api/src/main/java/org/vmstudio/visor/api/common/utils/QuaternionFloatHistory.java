@@ -29,6 +29,13 @@ public class QuaternionFloatHistory {
         }
     }
 
+    public synchronized void addOwned(Quaternionf quat) {
+        history.addLast(new Entry(quat, System.currentTimeMillis()));
+        if (history.size() > capacity) {
+            history.removeFirst();
+        }
+    }
+
     /** Clear the history. */
     public synchronized void clear() {
         history.clear();

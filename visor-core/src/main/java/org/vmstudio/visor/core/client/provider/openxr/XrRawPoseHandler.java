@@ -66,16 +66,12 @@ public class XrRawPoseHandler extends RawPoseHandler {
         Vector3f headsetPos = hmdData.getPosition();
         hmdData.getPositionHistory().add(headsetPos);
         Vector3f vector3 = hmdData.getRotation()
-                .transformDirection(new Vector3f(0.0F, -0.1F, 0.1F));
+                .transformDirection(0.0F, -0.1F, 0.1F, new Vector3f())
+                .add(headsetPos);
         hmdData.getPivotHistory()
-                .add(new Vector3f(
-                                vector3.x() + headsetPos.x,
-                                vector3.y() + headsetPos.y,
-                                vector3.z() + headsetPos.z
-                        )
-                );
+                .add(vector3);
         hmdData.getRotationHistory()
-                .add(new Quaternionf().setFromNormalized(hmdRotation)
+                .addOwned(new Quaternionf().setFromNormalized(hmdRotation)
                         .rotateY(ClientContext.localPlayer.getPoseData(PlayerPoseType.TICK).getRotationY()));
 
 
@@ -316,7 +312,7 @@ public class XrRawPoseHandler extends RawPoseHandler {
         tracker.getPositionHistory()
                 .add(trackerPos);
         tracker.getRotationHistory()
-                .add(new Quaternionf().setFromNormalized(trackerRotation)
+                .addOwned(new Quaternionf().setFromNormalized(trackerRotation)
                         .rotateY(ClientContext.localPlayer.getPoseData(PlayerPoseType.TICK).getRotationY()));
         tracker.setTracking(true);
     }
