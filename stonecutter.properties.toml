@@ -10,8 +10,8 @@ mod_license = "MPL-2.0"
 # ---- Common dependencies ----------------------------------------------------------------------
 fabric_loader_version = "0.16.14"
 fabric_loader_version_range = ">=0.14.14"
-atumvr_source         = "local"   # "local" = <root>/libs, "maven" = external repository
-atumvr_version        = "1.14.0beta-snapshot#26"
+atumvr_source         = "mavenLocal"   # "local" = <root>/libs, "maven" = external repository, "mavenLocal" = AtumVR quest-port in ~/.m2 (docs/QUEST_PORT.md)
+atumvr_version        = "1.14.0beta-snapshot#14"
 atumconfig_version    = "1.2.0pre3"
 lwjgl_version         = "3.3.6"
 mixin_extras_version  = "0.4.1"

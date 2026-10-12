@@ -66,6 +66,12 @@ repositories {
     flatDir { dirs rootProject.file("libs") }
     // ----
 
+    // ---- QUEST DEPENDENCY: AtumVR quest-port published with publishToMavenLocal (docs/QUEST_PORT.md)
+    exclusiveContent {
+        forRepository { mavenLocal() }
+        filter { includeGroup "me.phoenixra" }
+    }
+
     exclusiveContent {
         forRepository { maven { name = "Modrinth"; url = "https://api.modrinth.com/maven" } }
         filter { includeGroup "maven.modrinth" }
@@ -73,13 +79,18 @@ repositories {
 }
 
 // ---- AtumVR ------------------------------------------------------------------------------
-if (!(atumvr_source in ["local", "maven"])) {
-    throw new GradleException("atumvr_source must be \"local\" or \"maven\", got \"${atumvr_source}\"")
+if (!(atumvr_source in ["local", "maven", "mavenLocal"])) {
+    throw new GradleException("atumvr_source must be \"local\", \"maven\" or \"mavenLocal\", got \"${atumvr_source}\"")
 }
 project.ext.atumvr = { String module ->
-    atumvr_source == "local"
-            ? [name: "atumvr-${module}-${atumvr_version}"]
-            : "com.github.Phoenix-Ra.AtumVR:atumvr-${module}:${atumvr_version}"
+    switch (atumvr_source) {
+        case "local": return [name: "atumvr-${module}-${atumvr_version}"]
+        // like the flatDir jars: AtumVR's own LWJGL/JOML dependencies stay out, Minecraft provides them
+        case "mavenLocal": return project.dependencies.create("me.phoenixra:atumvr-${module}:${atumvr_version}") {
+            transitive = false
+        }
+        default: return "com.github.Phoenix-Ra.AtumVR:atumvr-${module}:${atumvr_version}"
+    }
 }
 
 // ---- Minecraft ----------------------------------------------------------------------------

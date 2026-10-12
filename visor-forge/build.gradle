@@ -67,6 +67,7 @@ configurations.runtimeClasspath {
 
     if (!unobfuscated) {
         exclude group: "com.github.Phoenix-Ra.AtumVR"
+        exclude group: "me.phoenixra"
         exclude module: "atumvr-api-${atumvr_version}"
         exclude module: "atumvr-core-${atumvr_version}"
     }
