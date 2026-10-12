@@ -2,6 +2,7 @@ package org.vmstudio.visor.core.client.provider.openxr.render;
 
 import lombok.Getter;
 import me.phoenixra.atumvr.api.enums.EyeType;
+import me.phoenixra.atumvr.core.session.platform.XRPlatform;
 import me.phoenixra.atumvr.api.input.device.AtumVRDeviceHMD;
 
 import me.phoenixra.atumvr.api.rendering.AtumVRRenderContext;
@@ -77,14 +78,18 @@ public class XrRenderer extends VRRendererBase {
         glWindow = SDLVideo.SDL_GL_GetCurrentWindow();
         glContext = SDLVideo.SDL_GL_GetCurrentContext();
         //?}
-        GL11.glDisable(GL30.GL_FRAMEBUFFER_SRGB);
+        if (XRPlatform.isAndroid()) {
+            GL11.glDisable(GL30.GL_FRAMEBUFFER_SRGB);
+        }
 
         super.init();
     }
 
     @Override
     public void destroy() {
-        GL11.glEnable(GL30.GL_FRAMEBUFFER_SRGB);
+        if (XRPlatform.isAndroid()) {
+            GL11.glEnable(GL30.GL_FRAMEBUFFER_SRGB);
+        }
         super.destroy();
     }
 

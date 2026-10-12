@@ -4,6 +4,7 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import lombok.Getter;
 import me.phoenixra.atumvr.api.enums.EyeType;
+import me.phoenixra.atumvr.core.session.platform.XRPlatform;
 import me.phoenixra.atumvr.api.utils.GLUtils;
 import org.jetbrains.annotations.Nullable;
 import org.vmstudio.visor.api.client.settings.enums.ScalingFilter;
@@ -55,14 +56,16 @@ public class VRShaderPostProcessEye implements VRShader{
             updateEffects(partialTicks);
         }
 
-        if (!loggedFramebufferColorState) {
-            org.vmstudio.visor.core.client.VisorClientImpl.LOGGER.info(
-                    "Final eye framebuffer sRGB was {} before correction",
-                    GL11.glIsEnabled(GL30.GL_FRAMEBUFFER_SRGB) ? "enabled" : "disabled"
-            );
-            loggedFramebufferColorState = true;
+        if (XRPlatform.isAndroid()) {
+            if (!loggedFramebufferColorState) {
+                org.vmstudio.visor.core.client.VisorClientImpl.LOGGER.info(
+                        "Final eye framebuffer sRGB was {} before correction",
+                        GL11.glIsEnabled(GL30.GL_FRAMEBUFFER_SRGB) ? "enabled" : "disabled"
+                );
+                loggedFramebufferColorState = true;
+            }
+            GL11.glDisable(GL30.GL_FRAMEBUFFER_SRGB);
         }
-        GL11.glDisable(GL30.GL_FRAMEBUFFER_SRGB);
 
         if (resampleTarget == null) {
             McRenderTarget.bindWrite(target);
