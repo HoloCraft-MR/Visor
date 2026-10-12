@@ -138,7 +138,8 @@ public abstract class VRRendererBase implements VRRenderer {
 
     private RenderTarget screenshotSource(boolean frameRendered) {
         var window = (WindowExtension) (Object) MC.getWindow();
-        boolean mirrorShown = VRClientSettings.getMirrorMode() != MirrorMode.OFF
+        boolean mirrorShown = !XRPlatform.isAndroid()
+                && VRClientSettings.getMirrorMode() != MirrorMode.OFF
                 && window.visor$mcScreenWidth() > 0 && window.visor$mcScreenHeight() > 0;
         if (mirrorShown || !frameRendered) {
             return McRenderTarget.mainTarget();
