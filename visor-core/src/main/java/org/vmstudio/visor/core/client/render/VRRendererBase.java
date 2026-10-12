@@ -1,5 +1,6 @@
 package org.vmstudio.visor.core.client.render;
 
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import lombok.Getter;
 import lombok.Setter;
 import me.phoenixra.atumvr.api.enums.EyeType;
@@ -23,6 +24,7 @@ import org.vmstudio.visor.core.client.render.target.types.RenderTargetFirst;
 import org.vmstudio.visor.core.client.render.target.types.RenderTargetGUI;
 import org.vmstudio.visor.core.client.render.target.types.RenderTargetMain;
 import org.vmstudio.visor.core.client.render.target.types.RenderTargetThird;
+import org.vmstudio.visor.core.client.utils.ClientUtils;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
 import org.vmstudio.visor.api.client.settings.enums.MirrorMode;
 import org.vmstudio.visor.api.common.utils.LoggerUtils;
@@ -121,9 +123,26 @@ public abstract class VRRendererBase implements VRRenderer {
         //? if >=26.1 {
         McRenderTarget.clear(McRenderTarget.mainTarget());
         //?}
-        MirrorHelper.drawMirror(shouldRenderFrame());
+        boolean frameRendered = shouldRenderFrame();
+        MirrorHelper.drawMirror(frameRendered);
+        if (askedForScreenShot) {
+            askedForScreenShot = false;
+            ClientUtils.takeScreenshot(screenshotSource(frameRendered));
+        }
         context.profiler().pop();
         GLUtils.checkGLError("post mirror");
+    }
+
+    private RenderTarget screenshotSource(boolean frameRendered) {
+        var window = (WindowExtension) (Object) MC.getWindow();
+        boolean mirrorShown = VRClientSettings.getMirrorMode() != MirrorMode.OFF
+                && window.visor$mcScreenWidth() > 0 && window.visor$mcScreenHeight() > 0;
+        if (mirrorShown || !frameRendered) {
+            return McRenderTarget.mainTarget();
+        }
+        var eye = VRClientSettings.getMirrorEye() == EyeType.LEFT
+                ? getTextureLeftEye() : getTextureRightEye();
+        return eye.getRenderTarget();
     }
 
     public void onGameRenderStart(boolean renderLevel) {

@@ -26,8 +26,6 @@ import org.vmstudio.visor.core.client.render.camera.VRCameraEntitySwap;
 import org.vmstudio.visor.core.client.render.camera.VRCameraOverlaps;
 //?}
 import org.vmstudio.visor.core.client.render.helpers.RenderStateHelper;
-import org.vmstudio.visor.api.client.settings.VRClientSettings;
-import org.vmstudio.visor.core.client.utils.ClientUtils;
 import org.jetbrains.annotations.NotNull;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.*;
@@ -85,10 +83,6 @@ public class VisorScene implements AtumVRScene {
             );
             GLUtils.checkGLError("post VR render pass: " + renderPass.name());
 
-
-            if (ClientContext.renderer.isAskedForScreenShot()) {
-                takeScreenshot(renderPass);
-            }
             McRenderUtils.endRenderPass();
             profiler.pop();
         }
@@ -114,27 +108,6 @@ public class VisorScene implements AtumVRScene {
         }
 
         GLUtils.checkGLError("post VROverlays skipping post processing");
-    }
-
-    private void takeScreenshot(VRRenderPass currentStage) {
-
-        boolean flag;
-        if (currentStage == VRRenderPass.CENTER) {
-            flag = true;
-        } else {
-            flag = VRClientSettings.getMirrorEye() == EyeType.LEFT ?
-                    currentStage == VRRenderPass.EYE_LEFT
-                    : currentStage == VRRenderPass.EYE_RIGHT;
-        }
-
-        if (flag) {
-            RenderTarget rendertarget = McRenderTarget.mainTarget();
-
-            McRenderTarget.unbindWrite(rendertarget);
-            ClientUtils.takeScreenshot(rendertarget);
-            McRenderUtils.updateDisplay(MC.getWindow());
-            ClientContext.renderer.setAskedForScreenShot(false);
-        }
     }
 
     @Override
