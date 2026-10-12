@@ -1,6 +1,7 @@
 package org.vmstudio.visor.loader.fabric;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import org.vmstudio.visor.api.compatibility.mcversion.McVersionClientUtils;
 
 public final class WorldPreloaderClient {
     private WorldPreloaderClient() {
@@ -11,8 +12,8 @@ public final class WorldPreloaderClient {
             if (WorldPreloader.isActive()
                     && client.level != null
                     && client.player != null
-                    && !(client.screen instanceof WorldPreloaderScreen)) {
-                client.setScreen(new WorldPreloaderScreen());
+                    && !(McVersionClientUtils.screen() instanceof WorldPreloaderScreen)) {
+                McVersionClientUtils.setScreen(new WorldPreloaderScreen());
             }
         });
     }

@@ -170,8 +170,8 @@ public abstract class VRRendererBase implements VRRenderer {
         McRenderTarget.bindWrite(McRenderTarget.mainTarget());
 
         ((GameRendererExtension)MC.gameRenderer).visor$setVRGuiVisible(
-                MC.screen != null
-                        || MC.getOverlay() != null
+                McVersionClientUtils.screen() != null
+                        || McVersionClientUtils.overlay() != null
                         || renderLevel && MC.getEntityRenderDispatcher().camera != null
         );
     }

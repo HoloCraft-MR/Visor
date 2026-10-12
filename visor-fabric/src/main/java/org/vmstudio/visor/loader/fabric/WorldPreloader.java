@@ -84,7 +84,11 @@ public final class WorldPreloader {
 
         boolean started = !newWorld && api.continueTask(WORLD);
         if (!started) {
-            BlockPos spawn = server.overworld().getSharedSpawnPos();
+            //? if >=1.21.9 {
+            BlockPos spawn = server.overworld().getRespawnData().pos();
+            //?} else {
+            /*BlockPos spawn = server.overworld().getSharedSpawnPos();
+            *///?}
             started = api.startTask(WORLD, "circle", spawn.getX(), spawn.getZ(), RADIUS, RADIUS, "concentric");
         }
 
