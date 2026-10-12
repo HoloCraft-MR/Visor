@@ -240,6 +240,15 @@ public class McRenderUtils {
         *///?}
     }
 
+    public static int getPixelArgb(NativeImage image, int x, int y) {
+        //? if >=1.21.2 {
+        return image.getPixel(x, y);
+        //?} else {
+        /*int abgr = image.getPixelRGBA(x, y);
+        return (abgr & 0xFF00FF00) | ((abgr >> 16) & 0xFF) | ((abgr & 0xFF) << 16);
+        *///?}
+    }
+
     // ------- TIMING -------
 
     public static float deltaFrameTicks() {

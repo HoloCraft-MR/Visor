@@ -18,7 +18,9 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11C;
 import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
+import org.vmstudio.visor.core.client.VisorClientImpl;
 
+import java.io.InputStream;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -155,11 +157,19 @@ public final class VRMenuSky {
     private static final int VISOR_TOTAL_COLS =
             VISOR_GLYPHS.length * GLYPH_W + (VISOR_GLYPHS.length - 1) * GLYPH_GAP;
 
+    private static final Identifier VISOR_ICON_TEXTURE = McVersionUtils.newResourceLoc("visor:icon_headset.png");
+
+    private static final int VISOR_ICON_COLS = 21;
+    private static final int VISOR_ICON_ROWS = 9;
+    private static final int VISOR_ICON_GAP = 2; // empty rows between the icon and the glyphs
+    private static final int VISOR_ICON_MIN_ALPHA = 128;
+
     // shared billboard basis of the sign plane
     private static final Vector3f VISOR_RIGHT;
     private static final Vector3f VISOR_UP;
 
     private static final DotsSign VISOR_SIGN;
+    private static DotsSign VISOR_ICON = null;
 
     private static Identifier GLOW_SPRITE = null;
 
@@ -912,6 +922,9 @@ public final class VRMenuSky {
     private static void renderVisorSign(McVertexBuilder builder,
                                         Matrix4f pose) {
         ensureGlowSprite();
+        if (VISOR_ICON == null) {
+            VISOR_ICON = createIconDotsSign();
+        }
 
         float gleamPos = (float) (currentTimeSec * VISOR_GLEAM_SPEED) % (VISOR_TOTAL_COLS + VISOR_GLEAM_W * 2f) - VISOR_GLEAM_W;
         boolean asCloudDots = currentDay >= VISOR_DAY_THRESHOLD;
@@ -925,11 +938,21 @@ public final class VRMenuSky {
             McGlState.blendFunc(McGlState.Blend.SRC_ALPHA, McGlState.Blend.ONE); // additive
         }
 
-        int[] cloudTint = {0, 0, 0};
         builder.begin(PrimitiveTopology.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-        for (int i = 0; i < VISOR_SIGN.n; i++) {
-            float gleam = 1f + VISOR_GLEAM_AMT * Math.max(0f, 1f - Math.abs(VISOR_SIGN.col[i] - gleamPos) / VISOR_GLEAM_W);
-            float cx = VISOR_SIGN.px[i], cy = VISOR_SIGN.py[i], cz = VISOR_SIGN.pz[i]; // anchored
+        emitSignDots(builder, pose, VISOR_SIGN, gleamPos, asCloudDots);
+        emitSignDots(builder, pose, VISOR_ICON, gleamPos, asCloudDots);
+        builder.draw();
+
+        McGlState.defaultBlendFunc();
+        McGlState.setShaderColor(1, 1, 1, 1);
+    }
+
+    private static void emitSignDots(McVertexBuilder builder, Matrix4f pose,
+                                     DotsSign sign, float gleamPos, boolean asCloudDots) {
+        int[] cloudTint = {0, 0, 0};
+        for (int i = 0; i < sign.n; i++) {
+            float gleam = 1f + VISOR_GLEAM_AMT * Math.max(0f, 1f - Math.abs(sign.col[i] - gleamPos) / VISOR_GLEAM_W);
+            float cx = sign.px[i], cy = sign.py[i], cz = sign.pz[i]; // anchored
             if (asCloudDots) {
                 // calmer, slower breathing for the cloud skin
                 float pulse = 1f + VISOR_PULSE_AMT * 0.6f * (float) Math.sin(currentTimeSec * VISOR_PULSE_SPEED * 0.7f + i * 1.3f);
@@ -947,10 +970,6 @@ public final class VRMenuSky {
                 spriteQuad(builder, pose, cx, cy, cz, VISOR_STAR_CORE * pulse, color, coreAlpha);
             }
         }
-        builder.draw();
-
-        McGlState.defaultBlendFunc();
-        McGlState.setShaderColor(1, 1, 1, 1);
     }
 
     // ====== CLOUDS ======
@@ -1335,7 +1354,6 @@ public final class VRMenuSky {
 
     // ---- VISOR SIGN
     private static DotsSign createDotsSign(String[][] glyphs) {
-        Vector3f center = new Vector3f(VISOR_DIR).mul(VISOR_RADIUS);
         float centerCol = (VISOR_TOTAL_COLS - 1) / 2f;
         float centerRow = (GLYPH_H - 1) / 2f;
 
@@ -1352,15 +1370,54 @@ public final class VRMenuSky {
                     int globalCol = glyphIndex * (GLYPH_W + GLYPH_GAP) + glyphCol;
                     float localX = (centerCol - globalCol) * VISOR_DOTS_SPACING; // un-mirrored
                     float localY = (centerRow - row) * VISOR_DOTS_SPACING;  // +up (row 0 = top)
-                    points.add(new float[]{
-                            center.x + VISOR_RIGHT.x * localX + VISOR_UP.x * localY,
-                            center.y + VISOR_RIGHT.y * localX + VISOR_UP.y * localY,
-                            center.z + VISOR_RIGHT.z * localX + VISOR_UP.z * localY
-                    });
+                    points.add(signPoint(localX, localY));
                     columns.add(globalCol);
                 }
             }
         }
+        return toDotsSign(points, columns);
+    }
+
+    private static DotsSign createIconDotsSign() {
+        List<float[]> points = new ArrayList<>();
+        List<Integer> columns = new ArrayList<>();
+        try (InputStream stream = Minecraft.getInstance().getResourceManager().open(VISOR_ICON_TEXTURE);
+             NativeImage image = NativeImage.read(stream)) {
+            int width = image.getWidth();
+            int height = image.getHeight();
+            float centerCol = (VISOR_ICON_COLS - 1) / 2f;
+            float bottomY = ((GLYPH_H - 1) / 2f + VISOR_ICON_GAP + 1) * VISOR_DOTS_SPACING;
+            int colOffset = (VISOR_TOTAL_COLS - VISOR_ICON_COLS) / 2; // gleam sweeps icon and glyphs together
+            for (int row = 0; row < VISOR_ICON_ROWS; row++) {
+                int y = (int) ((row + 0.5f) * height / VISOR_ICON_ROWS);
+                for (int col = 0; col < VISOR_ICON_COLS; col++) {
+                    int x = (int) ((col + 0.5f) * width / VISOR_ICON_COLS);
+                    if ((McRenderUtils.getPixelArgb(image, x, y) >>> 24) < VISOR_ICON_MIN_ALPHA) {
+                        continue;
+                    }
+                    float localX = (centerCol - col) * VISOR_DOTS_SPACING;
+                    float localY = bottomY + (VISOR_ICON_ROWS - 1 - row) * VISOR_DOTS_SPACING;
+                    points.add(signPoint(localX, localY));
+                    columns.add(colOffset + col);
+                }
+            }
+        } catch (Exception e) {
+            VisorClientImpl.LOGGER.warn("Failed to load the main menu sky icon {}", VISOR_ICON_TEXTURE, e);
+            points.clear();
+            columns.clear();
+        }
+        return toDotsSign(points, columns);
+    }
+
+    private static float[] signPoint(float localX, float localY) {
+        return new float[]{
+                VISOR_DIR.x * VISOR_RADIUS + VISOR_RIGHT.x * localX + VISOR_UP.x * localY,
+                VISOR_DIR.y * VISOR_RADIUS + VISOR_RIGHT.y * localX + VISOR_UP.y * localY,
+                VISOR_DIR.z * VISOR_RADIUS + VISOR_RIGHT.z * localX + VISOR_UP.z * localY
+        };
+    }
+
+    private static DotsSign toDotsSign(List<float[]> points, List<Integer> columns) {
         int count = points.size();
         float[] px = new float[count];
         float[] py = new float[count];
