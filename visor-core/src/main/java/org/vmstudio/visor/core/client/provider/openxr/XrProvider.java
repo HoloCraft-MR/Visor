@@ -33,6 +33,9 @@ public class XrProvider extends XRProvider {
 
     @Override
     public float getPreferredRefreshRate() {
+        if (!XRPlatform.isAndroid()) {
+            return super.getPreferredRefreshRate();
+        }
         return QuestVLoader.isQuest3Family() ? 120.0F : 72.0F;
     }
 
