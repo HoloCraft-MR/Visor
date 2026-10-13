@@ -1,5 +1,7 @@
 package org.vmstudio.visor.core.client.provider.openxr;
 
+import org.vmstudio.visor.api.client.VisorClientEvents;
+
 import lombok.Getter;
 import me.phoenixra.atumvr.api.AtumVRLogger;
 import me.phoenixra.atumvr.api.rendering.AtumVRRenderer;
@@ -13,6 +15,10 @@ import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorClientImpl;
 import org.vmstudio.visor.core.client.provider.openxr.render.XrRenderer;
 import org.jetbrains.annotations.NotNull;
+import org.lwjgl.openxr.FBCompositionLayerSettings;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
@@ -77,6 +83,14 @@ public class XrProvider extends XRProvider {
         return new XrInputHandler(this);
     }
 
+    /** Base extensions + XR_FB_composition_layer_settings (quad layers); enabled only if the runtime has it */
+    @Override
+    public @NotNull List<String> getXRAppExtensions() {
+        List<String> extensions = new ArrayList<>(super.getXRAppExtensions());
+        extensions.add(FBCompositionLayerSettings.XR_FB_COMPOSITION_LAYER_SETTINGS_EXTENSION_NAME);
+        return extensions;
+    }
+
     @Override
     public @NotNull AtumVRRenderer createRenderer() {
         return new XrRenderer(this);
@@ -85,6 +99,13 @@ public class XrProvider extends XRProvider {
     @Override
     public void onStateChanged(XRSessionState state) {
         sessionState = state;
+        VisorClientEvents.fireXrSessionStateChanged(state);
+    }
+
+    @Override
+    protected void onReferenceSpaceChangePending(int referenceSpaceType, long changeTime, boolean poseValid) {
+        super.onReferenceSpaceChangePending(referenceSpaceType, changeTime, poseValid);
+        VisorClientEvents.fireReferenceSpaceChanged();
     }
 
     @Override
