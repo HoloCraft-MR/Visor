@@ -4,6 +4,7 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import lombok.Getter;
 import me.phoenixra.atumvr.api.enums.EyeType;
+import me.phoenixra.atumvr.core.session.platform.XRPlatform;
 import me.phoenixra.atumvr.api.utils.GLUtils;
 import org.jetbrains.annotations.Nullable;
 import org.vmstudio.visor.api.client.settings.enums.ScalingFilter;
@@ -14,6 +15,8 @@ import org.vmstudio.visor.core.client.utils.ClientUtils;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
 import net.minecraft.util.Util;
 import net.minecraft.util.Mth;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
@@ -34,6 +37,8 @@ public class VRShaderPostProcessEye implements VRShader{
     private float tintBlack;
     private float desaturate;
 
+    private boolean loggedFramebufferColorState;
+
     @Override
     public void init() throws Exception {
         handle = McShaderProgram.core("vr_post_process_eye", DefaultVertexFormat.POSITION_TEX, false);
@@ -49,6 +54,17 @@ public class VRShaderPostProcessEye implements VRShader{
             // update state only for the first rendered eye,
             // to have synchronized effects for both
             updateEffects(partialTicks);
+        }
+
+        if (XRPlatform.isAndroid()) {
+            if (!loggedFramebufferColorState) {
+                org.vmstudio.visor.core.client.VisorClientImpl.LOGGER.info(
+                        "Final eye framebuffer sRGB was {} before correction",
+                        GL11.glIsEnabled(GL30.GL_FRAMEBUFFER_SRGB) ? "enabled" : "disabled"
+                );
+                loggedFramebufferColorState = true;
+            }
+            GL11.glDisable(GL30.GL_FRAMEBUFFER_SRGB);
         }
 
         if (resampleTarget == null) {

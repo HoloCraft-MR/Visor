@@ -38,8 +38,11 @@ public class RenderEffectsHelper {
             {-SCREEN_QUAD_EXTENT,  SCREEN_QUAD_EXTENT}
     };
 
+    private static final Matrix4f FULLSCREEN_MATRIX = new Matrix4f().m22(-1.0F).m32(-1.0F);
+    private static final Matrix4f ORTHO_MATRIX = new Matrix4f();
+
     private static Matrix4f fullscreenMatrix() {
-        return new Matrix4f().m22(-1.0F).m32(-1.0F);
+        return FULLSCREEN_MATRIX;
     }
 
     public static void renderInBlockEffect() {
@@ -140,7 +143,7 @@ public class RenderEffectsHelper {
 
         try {
             beginMaskWrite();
-            Matrix4f ortho = new Matrix4f()
+            Matrix4f ortho = ORTHO_MATRIX
                     .setOrtho(0, McRenderTarget.viewWidth(target), 0, McRenderTarget.viewHeight(target), 0, MASK_FAR_PLANE);
             McProjection.setOrthographic(ortho);
             McModelViewStack.identity();

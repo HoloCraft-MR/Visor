@@ -23,6 +23,12 @@ import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
 public class RenderPoseHelper {
 
+    private static final Matrix4f CAMERA_ROTATION = new Matrix4f();
+    private static final Matrix3f CAMERA_NORMAL = new Matrix3f();
+    private static final Vector3f CAMERA_OFFSET = new Vector3f();
+    private static final Vector3f HAND_OFFSET = new Vector3f();
+    private static final Matrix4f HAND_ROTATION = new Matrix4f();
+
     private RenderPoseHelper() {
         throw new UnsupportedOperationException("This is an utility class and cannot be instantiated");
     }
@@ -37,11 +43,11 @@ public class RenderPoseHelper {
 
     public static void applyCameraOrientation(VRRenderPass renderPass,
                                               PoseStack poseStack) {
-        Matrix4f rotationMatrix = getViewRotation(renderPass);
+        Matrix4f rotationMatrix = getViewRotation(renderPass, CAMERA_ROTATION);
 
         // apply to both blockPos & normal
         poseStack.last().pose().mul(rotationMatrix);
-        poseStack.last().normal().mul(new Matrix3f(rotationMatrix));
+        poseStack.last().normal().mul(CAMERA_NORMAL.set(rotationMatrix));
     }
 
     // 1.20.5 renderLevel carries the view rotation as a plain frustum matrix
@@ -95,6 +101,10 @@ public class RenderPoseHelper {
     }
 
     public static Matrix4f getViewRotation(VRRenderPass renderPass) {
+        return getViewRotation(renderPass, new Matrix4f());
+    }
+
+    private static Matrix4f getViewRotation(VRRenderPass renderPass, Matrix4f rotationMatrix) {
         float mirrorSmooth = VRClientSettings.getMirrorSmooth();
 
         LocalPlayerPose renderPose = ClientContext.localPlayer.getPoseData(PlayerPoseType.RENDER);
@@ -103,8 +113,7 @@ public class RenderPoseHelper {
         if (smooth) {
 
             // average rotation over history
-            return new Matrix4f()
-                    .rotation(
+            return rotationMatrix.rotation(
                             ClientContext.rawPoseHandler
                                     .getHmdData()
                                     .getRotationHistory()
@@ -115,7 +124,7 @@ public class RenderPoseHelper {
         return renderPose
                 .getCameraPose(renderPass)
                 .getRotation()
-                .transpose(new Matrix4f());
+                .transpose(rotationMatrix);
     }
 
     public static void applyCameraTranslation(VRRenderPass renderPass,
@@ -126,7 +135,7 @@ public class RenderPoseHelper {
         LocalPlayerPose renderPose = ClientContext.localPlayer.getPoseData(PlayerPoseType.RENDER);
         var eyePos = renderPose.getCameraPose(renderPass).getPosition();
         var hmdOrigin = renderPose.getHmd().getPosition();
-        var offset = eyePos.sub(hmdOrigin, new Vector3f());
+        var offset = eyePos.sub(hmdOrigin, CAMERA_OFFSET);
 
         poseStack.translate(-offset.x, -offset.y, -offset.z);
     }
@@ -148,14 +157,14 @@ public class RenderPoseHelper {
         // move origin to hand position relative to the reference origin
         var handPos = handPose.getPosition();
 
-        var relative = handPos.sub(referencePos, new Vector3f());
+        var relative = handPos.sub(referencePos, HAND_OFFSET);
         poseStack.translate(relative.x, relative.y, relative.z);
 
         // apply hand’s inverse rotation
         Matrix4f invRot = handPose
                 .getRotation()
-                .invert(new Matrix4f())
-                .transpose(new Matrix4f());
+                .invert(HAND_ROTATION)
+                .transpose();
         poseStack.last().pose().mul(invRot);
         poseStack.last().normal().mul(new Matrix3f(invRot));
 

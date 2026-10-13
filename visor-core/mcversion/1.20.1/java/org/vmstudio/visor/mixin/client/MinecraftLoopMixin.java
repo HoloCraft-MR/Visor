@@ -53,7 +53,7 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
      */
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;tick()V"), method = "runTick", require = 1)
     public void visor$preTick(CallbackInfo ci) {
-        if(ClientContext.visor != null) {
+        if (ClientContext.visor != null && !visor$isLevelTearingDown()) {
             ClientContext.visor.preTickVR();
         }
     }
@@ -63,9 +63,13 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
      *
      * @param info s
      */
-    @Inject(at = @At("HEAD"), method = "tick()V", require = 1)
+    @Inject(at = @At("HEAD"), method = "tick()V", cancellable = true, require = 1)
     public void visor$tick(CallbackInfo info) {
-        if(ClientContext.visor != null) {
+        if (visor$isLevelTearingDown()) {
+            info.cancel();
+            return;
+        }
+        if (ClientContext.visor != null) {
             ClientContext.visor.tickVR();
         }
     }
@@ -77,9 +81,15 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
      */
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;tick()V", shift = Shift.AFTER), method = "runTick", require = 1)
     public void visor$postTick(CallbackInfo ci) {
-        if(ClientContext.visor != null) {
+        if (ClientContext.visor != null && !visor$isLevelTearingDown()) {
             ClientContext.visor.postTickVR();
         }
+    }
+
+    @Unique
+    private boolean visor$isLevelTearingDown() {
+        Minecraft minecraft = (Minecraft) (Object) this;
+        return minecraft.level != null && (minecraft.gameMode == null || minecraft.player == null);
     }
 
     /**
@@ -101,7 +111,7 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
             McRenderTarget.setMainTarget(VRRenderState.getVanillaTarget());
         }
         *///?}
-        if(ClientContext.visor != null) {
+        if (ClientContext.visor != null && !visor$isLevelTearingDown()) {
             ClientContext.visor
                     .onGameLoopStart();
         }
@@ -109,7 +119,7 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
 
     @Inject(method = "runTick", at = @At(value = "CONSTANT", args = "stringValue=render"), require = 1)
     public void visor$preRenderVR(boolean tick, CallbackInfo callback) {
-        if(ClientContext.visor != null) {
+        if (ClientContext.visor != null && !visor$isLevelTearingDown()) {
             ClientContext.visor
                     .preRenderVR(
                             new PreRenderContext(
@@ -140,6 +150,18 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
     //?}
 
     private void visor$renderVRGuiPhase(boolean renderLevel, Consumer<Boolean> render) {
+        if (visor$isLevelTearingDown()) {
+            render.accept(false);
+            return;
+        }
+
+        Minecraft minecraft = (Minecraft) (Object) this;
+        renderLevel = renderLevel
+                && minecraft.level != null
+                && minecraft.player != null
+                && minecraft.gameMode != null
+                && minecraft.getCameraEntity() != null;
+
         if (VisorState.get().isNotActive()) {
             render.accept(renderLevel);
             return;
@@ -181,7 +203,7 @@ public abstract class MinecraftLoopMixin implements MinecraftExtension {
 
     @Unique
     private void visor$renderVRFrame(boolean renderLevel, long nanoTime) {
-        if (ClientContext.visor != null) {
+        if (ClientContext.visor != null && !visor$isLevelTearingDown()) {
             ClientContext.visor
                     .renderVR(
                             new RenderContext(

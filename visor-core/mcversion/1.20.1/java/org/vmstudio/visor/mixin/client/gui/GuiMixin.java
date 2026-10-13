@@ -33,6 +33,13 @@ public abstract class GuiMixin implements GuiExtension {
     @Shadow
     private Minecraft minecraft;
 
+    @Inject(at = @At("HEAD"), method = "render", cancellable = true)
+    private void visor$skipHudDuringLevelTeardown(CallbackInfo ci) {
+        if (minecraft.level != null && minecraft.gameMode == null) {
+            ci.cancel();
+        }
+    }
+
     /* ********************************** *\
   //--------DISABLE VANILLA OVERLAYS--------\\
     \* ********************************** */

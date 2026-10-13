@@ -107,6 +107,11 @@ public class VROverlayOptionsMenu extends VROverlayScreenInScreen<OptionsScreen<
         return false;
     }
 
+    @Override
+    public boolean supportsRetainedTexture() {
+        return true;
+    }
+
     public void openMenu(@NotNull VROverlaySettings settingsMenu,
                          @NotNull OverlayOptionGroup<?> optionsGroup){
         if(optionsGroup.getScreen() == null){

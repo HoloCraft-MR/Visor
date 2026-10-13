@@ -159,6 +159,11 @@ public class VROverlayMovementState extends VROverlayScreen {
         return false;
     }
 
+    @Override
+    public boolean supportsRetainedTexture() {
+        return true;
+    }
+
 
     @Override
     protected boolean updateVisibility() {

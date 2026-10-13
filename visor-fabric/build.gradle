@@ -22,6 +22,9 @@ dependencies {
     include(modImplementation(fabricApi.module("fabric-api-base", fabricApiVersion)))
     include(modImplementation(fabricApi.module("fabric-resource-loader-v0", fabricApiVersion)))
     include(modImplementation(fabricApi.module("fabric-command-api-v2", fabricApiVersion)))
+
+    // Chunky API for the WorldPreloader, optional at runtime
+    compileOnly("maven.modrinth:chunky:NHWYq9at") { transitive = false } // Chunky 1.3.146 (Fabric)
 }
 
 loom {

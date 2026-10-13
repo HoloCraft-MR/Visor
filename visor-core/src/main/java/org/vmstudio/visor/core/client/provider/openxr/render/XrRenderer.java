@@ -2,6 +2,7 @@ package org.vmstudio.visor.core.client.provider.openxr.render;
 
 import lombok.Getter;
 import me.phoenixra.atumvr.api.enums.EyeType;
+import me.phoenixra.atumvr.core.session.platform.XRPlatform;
 import me.phoenixra.atumvr.api.input.device.AtumVRDeviceHMD;
 
 import me.phoenixra.atumvr.api.rendering.AtumVRRenderContext;
@@ -16,6 +17,8 @@ import org.vmstudio.visor.core.client.render.VRRendererBase;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.lwjgl.PointerBuffer;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.openxr.*;
 import org.lwjgl.system.MemoryStack;
 
@@ -75,8 +78,19 @@ public class XrRenderer extends VRRendererBase {
         glWindow = SDLVideo.SDL_GL_GetCurrentWindow();
         glContext = SDLVideo.SDL_GL_GetCurrentContext();
         //?}
+        if (XRPlatform.isAndroid()) {
+            GL11.glDisable(GL30.GL_FRAMEBUFFER_SRGB);
+        }
 
         super.init();
+    }
+
+    @Override
+    public void destroy() {
+        if (XRPlatform.isAndroid()) {
+            GL11.glEnable(GL30.GL_FRAMEBUFFER_SRGB);
+        }
+        super.destroy();
     }
 
     @Override
@@ -305,8 +319,6 @@ public class XrRenderer extends VRRendererBase {
             GLUtils.drainGLErrors();
         }
     }
-
-
 
     @Override
     public Matrix4f getProjectionMatrix(EyeType eyeType, float nearClip, float farClip) {

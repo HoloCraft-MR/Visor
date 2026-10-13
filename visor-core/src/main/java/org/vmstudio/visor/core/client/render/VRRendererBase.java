@@ -4,6 +4,7 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import lombok.Getter;
 import lombok.Setter;
 import me.phoenixra.atumvr.api.enums.EyeType;
+import me.phoenixra.atumvr.core.session.platform.XRPlatform;
 import me.phoenixra.atumvr.api.utils.GLUtils;
 import org.vmstudio.visor.api.client.gui.overlays.framework.VROverlayScreen;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
@@ -124,7 +125,9 @@ public abstract class VRRendererBase implements VRRenderer {
         McRenderTarget.clear(McRenderTarget.mainTarget());
         //?}
         boolean frameRendered = shouldRenderFrame();
-        MirrorHelper.drawMirror(frameRendered);
+        if (!XRPlatform.isAndroid()) {
+            MirrorHelper.drawMirror(frameRendered);
+        }
         if (askedForScreenShot) {
             askedForScreenShot = false;
             ClientUtils.takeScreenshot(screenshotSource(frameRendered));
@@ -135,7 +138,8 @@ public abstract class VRRendererBase implements VRRenderer {
 
     private RenderTarget screenshotSource(boolean frameRendered) {
         var window = (WindowExtension) (Object) MC.getWindow();
-        boolean mirrorShown = VRClientSettings.getMirrorMode() != MirrorMode.OFF
+        boolean mirrorShown = !XRPlatform.isAndroid()
+                && VRClientSettings.getMirrorMode() != MirrorMode.OFF
                 && window.visor$mcScreenWidth() > 0 && window.visor$mcScreenHeight() > 0;
         if (mirrorShown || !frameRendered) {
             return McRenderTarget.mainTarget();
@@ -166,7 +170,9 @@ public abstract class VRRendererBase implements VRRenderer {
         McRenderTarget.bindWrite(McRenderTarget.mainTarget());
 
         ((GameRendererExtension)MC.gameRenderer).visor$setVRGuiVisible(
-                renderLevel && MC.getEntityRenderDispatcher().camera != null
+                McVersionClientUtils.screen() != null
+                        || McVersionClientUtils.overlay() != null
+                        || renderLevel && MC.getEntityRenderDispatcher().camera != null
         );
     }
 

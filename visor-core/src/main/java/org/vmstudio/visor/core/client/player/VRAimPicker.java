@@ -40,6 +40,10 @@ public class VRAimPicker {
             vanillaPick.run();
             return;
         }
+        if (MC.gameMode == null) {
+            MC.hitResult = fallbackMiss();
+            return;
+        }
         if (McVersionClientUtils.screen() != null && MC.hitResult != null) {
             return;
         }

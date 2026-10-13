@@ -70,6 +70,11 @@ public class VROverlayChat extends VROverlayTemplateScreen {
     }
 
     @Override
+    public boolean supportsRetainedTexture() {
+        return true;
+    }
+
+    @Override
     protected @NotNull List<OverlayOptionGroup<?>> createTemplateOptions() {
         return List.of(
                 new OverlayOptionsVisibility(
