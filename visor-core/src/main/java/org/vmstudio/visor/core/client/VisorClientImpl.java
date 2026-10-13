@@ -1,5 +1,7 @@
 package org.vmstudio.visor.core.client;
 
+import org.vmstudio.visor.api.client.VisorClientEvents;
+
 import lombok.Getter;
 import me.phoenixra.atumconfig.api.ConfigManager;
 import me.phoenixra.atumconfig.core.AtumConfigManager;
@@ -269,6 +271,7 @@ public class VisorClientImpl implements VisorClient {
         try {
             //NON-VR + VR
             ++VisorState.TICK_COUNT;
+            VisorClientEvents.fireClientTick();
 
             if(VisorState.get().isNotActive()){
                 //NON-VR ONLY

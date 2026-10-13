@@ -1,5 +1,7 @@
 package org.vmstudio.visor.core.client.render.decoration.hand;
 
+import org.vmstudio.visor.api.client.render.decoration.hand.HandRenderOverride;
+
 import org.vmstudio.visor.api.compatibility.mcversion.McVersionUtils;
 import net.minecraft.world.level.lighting.LightEngine;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McGlState;
@@ -373,7 +375,7 @@ public class VRHandRenderer {
         McGlState.defaultBlendFunc();
 
         if (isGui) {
-            renderGuiHand(poseStack);
+            renderGuiHand(poseStack, hand);
         } else {
             renderWorldHand(poseStack, hand, state, partialTicks);
         }
@@ -382,12 +384,23 @@ public class VRHandRenderer {
     }
 
 
-    private void renderGuiHand(PoseStack poseStack) {
+    private void renderGuiHand(PoseStack poseStack, HandType hand) {
         var whiteTex = TexturesHelper.getWhiteTexture();
         McGlState.setShaderTexture(0, whiteTex);
 
-        McGlState.depthFunc(GL11C.GL_ALWAYS);
-        McGlState.depthMask(false);
+        // depth-tested GUI hands requested by an addon: a hand not aiming at a menu
+        // depth-tests against what was drawn before it, aiming at a menu it stays on top
+        boolean depthTested = HandRenderOverride.isGuiHandDepthTested()
+                && !ClientContext.cursorHandler.isHandFocused(hand);
+        McGlState.depthFunc(depthTested ? GL11C.GL_LEQUAL : GL11C.GL_ALWAYS);
+        McGlState.depthMask(depthTested);
+
+        // addon hand override instead of the grey hand
+        if (HandRenderOverride.renderOverride(poseStack, hand)) {
+            McGlState.depthFunc(GL11C.GL_LEQUAL);
+            McGlState.depthMask(true);
+            return;
+        }
 
         float handLength = 0.18F;
         Vector3f start = new Vector3f();
@@ -504,7 +517,11 @@ public class VRHandRenderer {
                 || mixedRealityHands;
 
         poseStack.pushPose();
-        if (renderArm && !player.isInvisible() && !state.isWithItemOnly()) {
+        HandType ownHand = vrPlayer == ClientContext.localPlayer
+                ? (mainHand ? HandType.MAIN : HandType.OFFHAND)
+                : null;
+        if (renderArm && !player.isInvisible() && !state.isWithItemOnly()
+                && (ownHand == null || !HandRenderOverride.renderOverride(poseStack, ownHand))) {
             renderWorldArm(player, vrPlayer, poseStack, buffer, packedLight,
                     equipProgress, swingProgress, arm);
         }

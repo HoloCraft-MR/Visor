@@ -20,8 +20,19 @@ public class RenderShaderHelper {
     public static void renderFullscreenQuad(McShaderProgram shader,
                                             RenderTarget source
     ) {
+        renderFullscreenQuad(shader, source, false);
+    }
+
+    /**
+     * @param writeAlpha also write the alpha channel, e.g. to keep a
+     *                   transparent background for passthrough
+     */
+    public static void renderFullscreenQuad(McShaderProgram shader,
+                                            RenderTarget source,
+                                            boolean writeAlpha
+    ) {
         // --- Setup ---
-        McGlState.colorMask(true, true, true, false);
+        McGlState.colorMask(true, true, true, writeAlpha);
         McGlState.disableDepthTest();
         McGlState.depthMask(false);
         McGlState.disableBlend();

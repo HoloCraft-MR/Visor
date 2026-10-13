@@ -1,5 +1,7 @@
 package org.vmstudio.visor.core.client.provider;
 
+import org.vmstudio.visor.api.client.render.VisorRenderEvents;
+
 import org.vmstudio.visor.api.compatibility.mcversion.render.McGlState;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McProjection;
 import org.vmstudio.visor.api.compatibility.mcversion.McVersionClientUtils;
@@ -69,6 +71,9 @@ public class VisorScene implements AtumVRScene {
         );
         profiler.pop();
 
+        // addon textures for extra composition layers, before the eye passes
+        VisorRenderEvents.firePreSubmit();
+
         ShaderCompatHelper.bridge().beginFrame(
                 renderContext.partialTicks(),
                 renderContext.nanoTime()
@@ -128,7 +133,9 @@ public class VisorScene implements AtumVRScene {
         }
 
         McRenderTarget.bindWrite(McRenderTarget.mainTarget());
-        McGlState.clearColor(0.0F, 0.0F, 0.0F, 1.0F);
+        // passthrough: transparent background, passthrough shows where nothing is drawn
+        McGlState.clearColor(0.0F, 0.0F, 0.0F,
+                renderPass.isEye() && VisorRenderEvents.isPassthroughActive() ? 0.0F : 1.0F);
         McGlState.clear(16384);
         McGlState.enableDepthTest();
 
