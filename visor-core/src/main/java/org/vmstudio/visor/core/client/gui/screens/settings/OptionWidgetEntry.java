@@ -7,7 +7,7 @@ import org.vmstudio.visor.api.client.gui.widgets.info.WidgetInfoButtonImaged;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.api.common.utils.LoggerUtils;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
-import org.vmstudio.visor.core.client.settings.VROptionWidgetType;
+import org.vmstudio.visor.core.client.settings.VROptionWidget;
 import org.vmstudio.visor.api.compatibility.mcversion.McVersionClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -26,7 +26,7 @@ public class OptionWidgetEntry {
 
     @Getter
     @Nullable
-    private final VROptionWidgetType optionType;
+    private final VROptionWidget optionType;
 
     @Getter
     @Nullable
@@ -47,7 +47,7 @@ public class OptionWidgetEntry {
 
 
     public OptionWidgetEntry(@NotNull VROptionsSet owner,
-                             @NotNull VROptionWidgetType option,
+                             @NotNull VROptionWidget option,
                              @NotNull OptionWidgetPosition pos, int row,
                              @Nullable String buttonText
     ) {
@@ -209,8 +209,8 @@ public class OptionWidgetEntry {
     }
 
     public int getOrdinal() {
-        return this.optionType == null ?
-                0 : this.optionType.ordinal();
+        return this.optionType instanceof Enum<?> type ?
+                type.ordinal() : 0;
     }
 
 

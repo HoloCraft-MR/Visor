@@ -38,7 +38,7 @@ public class VRClientSettingsManager {
     public static VRClientSettingsManager instance;
 
     private final Map<String, VROptionRecord> allOptions = new HashMap<>();
-    private final Map<String, VROptionWidgetType> optionWidgets = new HashMap<>();
+    private final Map<String, VROptionWidget> optionWidgets = new HashMap<>();
 
     @Getter
     private final ConfigFile config;
@@ -112,6 +112,8 @@ public class VRClientSettingsManager {
 
     public void loadOptions() {
         loadOptionsFrom(config);
+        // addon migrations of older settings files
+        VRSettingsRegistry.fireLoaded(config);
     }
     public void loadDefaults() {
         loadOptionsFrom(defaultSettings, true);
@@ -327,16 +329,16 @@ public class VRClientSettingsManager {
     }
 
 
-    public String getOptionButtonName(VROptionWidgetType optionWidget) {
+    public String getOptionButtonName(VROptionWidget optionWidget) {
         return getOptionButtonName(optionWidget, false);
     }
 
-    public String getOptionButtonName(VROptionWidgetType optionWidget,
+    public String getOptionButtonName(VROptionWidget optionWidget,
                                       boolean valueOnly) {
         return getOptionButtonName(optionWidget, valueOnly, null);
     }
 
-    public String getOptionButtonName(VROptionWidgetType optionWidget,
+    public String getOptionButtonName(VROptionWidget optionWidget,
                                       boolean valueOnly,
                                       @Nullable Object valueOverride) {
         String lang = LangHelper.getText(
@@ -457,6 +459,27 @@ public class VRClientSettingsManager {
                         ? field.getName() : annotation.key());
 
                 allOptions.put(optionKey, new VROptionRecord(field, optionKey, true));
+            }
+
+            // addon options
+            for (var option : VRSettingsRegistry.getOptions()) {
+                String optionKey = option.category() != VROptionCategory.EMPTY
+                        ? option.category().getKey() + "." + option.key()
+                        : option.key();
+                allOptions.put(optionKey, new VROptionRecord(
+                        option.field(), optionKey, option.excludeForcedChange()
+                ));
+                if (option.widget() != null) {
+                    if (option.widget() instanceof VRCustomOptionWidget custom) {
+                        custom.setKey(optionKey);
+                    }
+                    if (optionWidgets.put(optionKey, option.widget()) != null) {
+                        throw new RuntimeException(
+                                "duplicate option widget key in client settings! " +
+                                        "widget: " + option.widget()
+                        );
+                    }
+                }
             }
 
             for (VROptionWidgetType widgetType : VROptionWidgetType.values()) {

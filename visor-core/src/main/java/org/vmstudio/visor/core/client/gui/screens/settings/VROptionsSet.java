@@ -3,7 +3,9 @@ package org.vmstudio.visor.core.client.gui.screens.settings;
 import lombok.Getter;
 import org.vmstudio.visor.api.client.gui.widgets.sets.DynamicWidgetSet;
 import org.vmstudio.visor.core.client.ClientContext;
+import org.vmstudio.visor.core.client.settings.VROptionWidget;
 import org.vmstudio.visor.core.client.settings.VROptionWidgetType;
+import org.vmstudio.visor.core.client.settings.VRSettingsRegistry;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Renderable;
@@ -24,7 +26,7 @@ public abstract class VROptionsSet extends DynamicWidgetSet {
     @Getter
     private final @Nullable VROptionsSet previousOptions;
 
-    private final Map<AbstractWidget, VROptionWidgetType> optionWidgets = new HashMap<>();
+    private final Map<AbstractWidget, VROptionWidget> optionWidgets = new HashMap<>();
 
 
 
@@ -58,7 +60,7 @@ public abstract class VROptionsSet extends DynamicWidgetSet {
     public <T extends GuiEventListener
             & Renderable
             & NarratableEntry> List<T> initWidgets() {
-        OptionWidgetEntry[] entries = getOptionEntries();
+        OptionWidgetEntry[] entries = VRSettingsRegistry.withPageEntries(this, getOptionEntries());
         if (entries != null && entries.length > 0) {
             initOptionEntries(entries, true);
         }
@@ -170,7 +172,7 @@ public abstract class VROptionsSet extends DynamicWidgetSet {
         screen.switchOptions(newOptions);
     }
 
-    public VROptionWidgetType getTypeFromWidget(AbstractWidget widget){
+    public VROptionWidget getTypeFromWidget(AbstractWidget widget){
         return optionWidgets.get(widget);
     }
 }

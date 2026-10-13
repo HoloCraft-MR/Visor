@@ -21,7 +21,7 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public enum VROptionWidgetType {
+public enum VROptionWidgetType implements VROptionWidget {
 
     EMPTY(
             VROptionCategory.EMPTY,
