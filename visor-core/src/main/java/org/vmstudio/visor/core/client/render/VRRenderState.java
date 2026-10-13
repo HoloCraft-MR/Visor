@@ -1,5 +1,7 @@
 package org.vmstudio.visor.core.client.render;
 
+import org.vmstudio.visor.api.client.render.VisorRenderEvents;
+
 import com.mojang.blaze3d.pipeline.MainTarget;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import lombok.Getter;
@@ -161,7 +163,7 @@ public class VRRenderState {
                 || renderPass.isThirdPerson();
     }
     public static boolean isSelfModelPlayer(Entity entity) {
-        if(VisorState.get().isNotActive()){
+        if(VisorState.get().isNotActive() || VisorRenderEvents.isDrawingCustomScene()){
             return false;
         }
         if(entity == null){
@@ -193,7 +195,7 @@ public class VRRenderState {
     }
 
     private static boolean canRenderSelfModel(Entity entity) {
-        if(VisorState.get().isNotActive()){
+        if(VisorState.get().isNotActive() || VisorRenderEvents.isDrawingCustomScene()){
             return false;
         }
         if(entity != MC.player

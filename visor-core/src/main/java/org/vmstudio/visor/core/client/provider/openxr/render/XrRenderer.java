@@ -87,6 +87,7 @@ public class XrRenderer extends VRRendererBase {
 
     @Override
     public void destroy() {
+        XrQuadLayers.destroyAll();
         if (XRPlatform.isAndroid()) {
             GL11.glEnable(GL30.GL_FRAMEBUFFER_SRGB);
         }
@@ -292,13 +293,22 @@ public class XrRenderer extends VRRendererBase {
                     );
                 }
 
+                PointerBuffer layers = stack.callocPointer(2 + XrQuadLayers.MAX_LAYERS);
+
+                // passthrough (if running) goes under the projection layer
+                long projectionFlags = vrProvider.preparePassthroughLayer(stack, layers);
+
                 XrCompositionLayerProjection compositionLayerProjection = XrCompositionLayerProjection.calloc(stack)
                         .type(XR10.XR_TYPE_COMPOSITION_LAYER_PROJECTION)
+                        .layerFlags(projectionFlags)
                         .space(vrProvider.getSession().getXrAppSpace())
                         .views(this.projectionLayerViews);
 
-                PointerBuffer layers = stack.callocPointer(1);
                 layers.put(compositionLayerProjection);
+
+                // quad layers on top of the projection layer
+                XrQuadLayers.putLayers(vrProvider, stack, layers);
+
                 layers.flip();
 
                 frameEndInfo.layers(layers);

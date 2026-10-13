@@ -1,5 +1,7 @@
 package org.vmstudio.visor.core.client.input.actions.game;
 
+import org.vmstudio.visor.api.client.input.VisorInput;
+
 import me.phoenixra.atumvr.api.input.profile.VRInteractionProfileType;
 import me.phoenixra.atumvr.api.input.profile.types.*;
 import org.vmstudio.visor.api.client.input.action.ActionBinding;
@@ -26,6 +28,10 @@ public class GameActionRotate extends VRActionVec2 {
 
     @Override
     public void preTick() {
+        // locomotion locked by an addon: no snap / smooth turn
+        if (VisorInput.isLocomotionLocked()) {
+            return;
+        }
         onStateChanged(getState());
     }
     @Override

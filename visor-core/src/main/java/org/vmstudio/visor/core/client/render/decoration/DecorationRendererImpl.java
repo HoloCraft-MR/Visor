@@ -1,5 +1,7 @@
 package org.vmstudio.visor.core.client.render.decoration;
 
+import org.vmstudio.visor.api.client.render.VisorRenderEvents;
+
 import org.vmstudio.visor.api.compatibility.mcversion.render.McGlState;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.vmstudio.visor.api.compatibility.mcversion.render.McModelViewStack;
@@ -80,7 +82,12 @@ public class DecorationRendererImpl implements VRDecorationRenderer {
         ModLoader.get().addToRenderPipeline(
                 RenderPipelineStage.AFTER_WORLD,
                 (poseStack, partialTicks) -> runPipelineStage(
-                        RenderPipelineStage.AFTER_WORLD, this::renderAfterWorld, poseStack, partialTicks
+                        RenderPipelineStage.AFTER_WORLD, (ps, pt) -> {
+                            // addon content first: GUI hands / cursor / HUD are drawn after it
+                            // and depth-test against it (hands) or stay on top (GUI)
+                            VisorRenderEvents.fireBeforeGuiHands(ps, pt);
+                            renderAfterWorld(ps, pt);
+                        }, poseStack, partialTicks
                 )
         );
     }

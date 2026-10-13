@@ -1,5 +1,7 @@
 package org.vmstudio.visor.core.client.render.shaders;
 
+import org.vmstudio.visor.api.client.render.VisorRenderEvents;
+
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import lombok.Getter;
@@ -93,7 +95,7 @@ public class VRShaderPostProcessEye implements VRShader{
         handle.setUniform("uTargetWidth", (float) McRenderTarget.viewWidth(target));
         handle.setUniform("uTargetHeight", (float) McRenderTarget.viewHeight(target));
 
-        RenderShaderHelper.renderFullscreenQuad(handle, source);
+        RenderShaderHelper.renderFullscreenQuad(handle, source, VisorRenderEvents.isPassthroughActive());
     }
 
     private static float filterIndex(ScalingFilter filter) {

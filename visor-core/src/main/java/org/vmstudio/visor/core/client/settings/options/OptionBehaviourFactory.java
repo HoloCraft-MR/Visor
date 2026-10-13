@@ -7,7 +7,7 @@ import org.vmstudio.visor.api.client.gui.widgets.info.WidgetInfoButtonImaged;
 import org.vmstudio.visor.api.client.gui.widgets.info.WidgetInfoSlider;
 import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.api.client.settings.VRClientSettings;
-import org.vmstudio.visor.core.client.settings.VROptionWidgetType;
+import org.vmstudio.visor.core.client.settings.VROptionWidget;
 import org.vmstudio.visor.core.client.utils.LangHelper;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 public class OptionBehaviourFactory {
 
 
-    public static OptionBehaviourBuilder simple(@NotNull VROptionWidgetType optionWidget) {
+    public static OptionBehaviourBuilder simple(@NotNull VROptionWidget optionWidget) {
 
         return new OptionBehaviourBuilder((entry) -> new ButtonImaged(
                 new WidgetInfoButtonImaged()
@@ -49,7 +49,7 @@ public class OptionBehaviourFactory {
                 }));
     }
 
-    public static <T> OptionBehaviourBuilder discreteSlider(@NotNull VROptionWidgetType optionWidget,
+    public static <T> OptionBehaviourBuilder discreteSlider(@NotNull VROptionWidget optionWidget,
                                                             List<T> entries,
                                                             Supplier<Integer> indexSupplier) {
 
@@ -88,7 +88,7 @@ public class OptionBehaviourFactory {
         });
     }
 
-    private static Tooltip getTooltip(@NotNull VROptionWidgetType optionWidget){
+    private static Tooltip getTooltip(@NotNull VROptionWidget optionWidget){
         String tooltipLang = "visor.options."
                 + optionWidget.getKey() + ".tooltip";
 
