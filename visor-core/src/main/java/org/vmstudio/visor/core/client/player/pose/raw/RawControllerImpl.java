@@ -31,6 +31,14 @@ public class RawControllerImpl implements RawController {
 
     private boolean tracking;
 
+    /**
+     * If the runtime located the aim / grip pose this frame.
+     * {@link #tracking} only means the pose action is active: a pose that
+     * was not located is identity (app space origin)
+     */
+    private boolean aimValid;
+    private boolean gripValid;
+
     public RawControllerImpl() {
 
     }

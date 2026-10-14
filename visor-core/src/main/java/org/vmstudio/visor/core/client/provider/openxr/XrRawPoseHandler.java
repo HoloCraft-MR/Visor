@@ -81,6 +81,8 @@ public class XrRawPoseHandler extends RawPoseHandler {
                 AtumVRDeviceController.ID_LEFT, XRDeviceController.class
         );
         controllerLeftData.setTracking(controllerLeftDevice.isActive());
+        controllerLeftData.setAimValid(controllerLeftDevice.isPoseValid());
+        controllerLeftData.setGripValid(controllerLeftDevice.isGripPoseValid());
 
         //---Aim
         controllerLeftData.getAimPoseMutable().set(
@@ -116,6 +118,8 @@ public class XrRawPoseHandler extends RawPoseHandler {
                 AtumVRDeviceController.ID_RIGHT, XRDeviceController.class
         );
         controllerRightData.setTracking(controllerRightDevice.isActive());
+        controllerRightData.setAimValid(controllerRightDevice.isPoseValid());
+        controllerRightData.setGripValid(controllerRightDevice.isGripPoseValid());
 
         //---Aim
         controllerRightData.getAimPoseMutable().set(

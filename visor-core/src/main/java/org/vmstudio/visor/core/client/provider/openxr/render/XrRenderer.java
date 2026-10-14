@@ -54,6 +54,10 @@ public class XrRenderer extends VRRendererBase {
 
     protected boolean frameShouldRender;
 
+    /** True while the runtime reports no valid head position */
+    @Getter
+    private boolean headPositionLost;
+
     /** SteamVR + Linux workaround on GL issue */
     private boolean steamVRLinuxWorkaround;
     private int lastSceneGLError;
@@ -149,6 +153,8 @@ public class XrRenderer extends VRRendererBase {
 
                 long requiredView = XR10.XR_VIEW_STATE_ORIENTATION_VALID_BIT
                         | XR10.XR_VIEW_STATE_POSITION_VALID_BIT;
+                headPositionLost = (viewState.viewStateFlags()
+                        & XR10.XR_VIEW_STATE_POSITION_VALID_BIT) == 0;
                 if ((viewState.viewStateFlags() & requiredView) != requiredView) {
                     frameShouldRender = false;
                 }
